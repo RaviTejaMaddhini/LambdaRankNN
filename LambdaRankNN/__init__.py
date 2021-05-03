@@ -1,6 +1,6 @@
 
 from keras import backend as K
-from keras.layers import Activation, Dense, Input, Subtract
+from keras.layers import Activation, Dense, Input, Subtract, Dropout
 from keras.models import Model
 import numpy as np
 import math
@@ -8,7 +8,7 @@ import math
 
 class RankerNN(object):
 
-    def __init__(self, input_size, hidden_layer_sizes=(100,), activation=('relu',), solver='adam'):
+    def __init__(self, input_size, hidden_layer_sizes=(100,), activation=('relu',), solver='adam',dropout_rate=0):
         """
         Parameters
         ----------
@@ -28,11 +28,11 @@ class RankerNN(object):
         """
         if len(hidden_layer_sizes) != len(activation):
             raise ValueError('hidden_layer_sizes and activation should have the same size.')
-        self.model = self._build_model(input_size, hidden_layer_sizes, activation)
+        self.model = self._build_model(input_size, hidden_layer_sizes, activation,dropout_rate)
         self.model.compile(optimizer=solver, loss="binary_crossentropy")
 
     @staticmethod
-    def _build_model(input_shape, hidden_layer_sizes, activation):
+    def _build_model(input_shape, hidden_layer_sizes, activation,dropout_rate):
         """
         Build Keras Ranker NN model (Ranknet / LambdaRank NN).
         """
@@ -40,6 +40,8 @@ class RankerNN(object):
         hidden_layers = []
         for i in range(len(hidden_layer_sizes)):
             hidden_layers.append(Dense(hidden_layer_sizes[i], activation=activation[i], name=str(activation[i]) + '_layer' + str(i)))
+            hidden_layers.append(Dropout(dropout_rate))
+
         h0 = Dense(1, activation='linear', name='Identity_layer')
         input1 = Input(shape=(input_shape,), name='Input_layer1')
         input2 = Input(shape=(input_shape,), name='Input_layer2')
@@ -239,8 +241,8 @@ class RankNetNN(RankerNN):
 
 class LambdaRankNN(RankerNN):
 
-    def __init__(self, input_size, hidden_layer_sizes=(100,), activation=('relu',), solver='adam'):
-        super(LambdaRankNN, self).__init__(input_size, hidden_layer_sizes, activation, solver)
+    def __init__(self, input_size, hidden_layer_sizes=(100,), activation=('relu',), solver='adam',dropout_rate=0):
+        super(LambdaRankNN, self).__init__(input_size, hidden_layer_sizes, activation, solver,dropout_rate)
 
     def _transform_pairwise(self, X, y, qid):
         """Transform data into lambdarank pairs with balanced labels
