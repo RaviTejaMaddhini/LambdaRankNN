@@ -1,7 +1,7 @@
-
 from keras import backend as K
 from keras.layers import Activation, Dense, Input, Subtract, Dropout
 from keras.models import Model
+from keras.callbacks import ModelCheckpoint,EarlyStopping,ReduceLROnPlateau
 import numpy as np
 import math
 
@@ -109,7 +109,7 @@ class RankerNN(object):
         return None, None, None, None
 
 
-    def fit(self, X, y, qid, batch_size=None, epochs=1, verbose=1, validation_split=0.0):
+    def fit(self, X, y, qid, batch_size=None, epochs=1, verbose=1, validation_split=0.0,callbacks=None):
         """Transform data and fit model.
         Parameters
         ----------
@@ -122,7 +122,7 @@ class RankerNN(object):
         """
         X1_trans, X2_trans, y_trans, weight = self._transform_pairwise(X, y, qid)
         self.model.fit([X1_trans, X2_trans], y_trans, sample_weight=weight, batch_size=batch_size, epochs=epochs,
-                       verbose=verbose, validation_split=validation_split)
+                       verbose=verbose, validation_split=validation_split,callbacks=callbacks)
         self.evaluate(X, y, qid)
 
     def predict(self, X):
